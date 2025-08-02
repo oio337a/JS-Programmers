@@ -1,32 +1,22 @@
-const fs = require('fs')
-const input = fs.readFileSync('/dev/stdin').toString().split('\n')
+const fs = require('fs');
+const input = fs.readFileSync('/dev/stdin').toString().trim().split('\n');
 
-const [N, K] = input[0].split(' ').map((e) => Number(e))
-let tieCnt = 0
-let answer = 0
-const scores = input.slice(1).map((e) => e.split(' ').map(a => Number(a)))
-const [_, gold, silver, bronse] = scores.filter((value) => value[0] === K)[0]
+const [N, K] = input[0].split(' ').map(Number);
+const scores = input.slice(1).map(line => line.split(' ').map(Number));
+
+const target = scores.find(([nation]) => nation === K);
+let answer = 1;
 
 for (let i = 0; i < N; i++) {
-    if (scores[i][1] < gold) continue
-    if (scores[i][1] > gold) {
-        answer++
-        continue
-    }
-    
-    if (scores[i][2] < silver) continue
-    if (scores[i][2] > silver) {
-        answer++
-        continue
-    }
+    const [_, g, s, b] = scores[i];
 
-    if (scores[i][3] < bronse) continue
-    if (scores[i][3] > bronse) {
-        answer++
-        continue
+    if (
+        g > target[1] ||
+        (g === target[1] && s > target[2]) ||
+        (g === target[1] && s === target[2] && b > target[3])
+    ) {
+        answer++;
     }
-
-    tieCnt++
 }
 
-console.log(answer + tieCnt - 1)
+console.log(answer);
