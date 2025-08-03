@@ -2,7 +2,7 @@ const fs = require('fs');
 const input = fs.readFileSync('/dev/stdin').toString().trim().split('\n');
 
 const isVowel = (ch) => 'aeiou'.includes(ch);
-
+let answer = []
 for (const password of input) {
     if (password === 'end') break;
 
@@ -43,5 +43,7 @@ for (const password of input) {
     if (!hasVowel) isAcceptable = false;
 
     const result = isAcceptable ? 'acceptable' : 'not acceptable';
-    console.log(`<${password}> is ${result}.`);
+    answer.push(`<${password}> is ${result}.`);
 }
+
+console.log(answer.join('\n'))
