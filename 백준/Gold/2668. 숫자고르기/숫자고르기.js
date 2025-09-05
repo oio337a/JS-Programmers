@@ -2,29 +2,40 @@ const fs = require("fs");
 const input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
 
 const N = Number(input[0]);
-const arr = [0, ...input.slice(1).map(Number)];
-const result = [];
-const visited = Array(N + 1).fill(false);
+const arr = [0, ...input.slice(1).map(Number)]; // 1-indexed
+const indegree = Array(N + 1).fill(0);
 
-function dfs(start, current, path) {
-  if (!visited[current]) {
-    visited[current] = true;
-    path.push(current);
-    dfs(start, arr[current], path);
-  } else {
-    // 사이클인지 확인
-    if (current === start) {
-      result.push(...path);
-    }
+for (let i = 1; i <= N; i++) {
+  indegree[arr[i]]++;
+}
+
+const queue = [];
+const removed = Array(N + 1).fill(false);
+
+// 진입차수가 0인 노드 큐에 넣기
+for (let i = 1; i <= N; i++) {
+  if (indegree[i] === 0) {
+    queue.push(i);
+    removed[i] = true;
   }
 }
 
-for (let i = 1; i <= N; i++) {
-  visited.fill(false); // 매번 방문 초기화
-  dfs(i, i, []);
+// 위상정렬처럼 제거 진행
+while (queue.length) {
+  const node = queue.shift();
+  const next = arr[node];
+  indegree[next]--;
+  if (indegree[next] === 0 && !removed[next]) {
+    queue.push(next);
+    removed[next] = true;
+  }
 }
 
-const unique = [...new Set(result)].sort((a, b) => a - b);
+// 사이클에 남은 노드들이 정답
+const result = [];
+for (let i = 1; i <= N; i++) {
+  if (!removed[i]) result.push(i);
+}
 
-console.log(unique.length);
-console.log(unique.join("\n"));
+console.log(result.length);
+console.log(result.join("\n"));
