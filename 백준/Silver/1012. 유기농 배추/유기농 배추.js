@@ -1,39 +1,51 @@
-/**
- * 유기농 배추
- */
+const fs = require("fs");
+const input = fs.readFileSync("/dev/stdin").toString().trim().split("\n");
 
-let [T, ...input] = require('fs').readFileSync(0).toString().trim().split('\n');
+const T = parseInt(input[0]);
+let idx = 1;
 
-while (T--) {
-  function bfs(i, j) {
-    const dx = [0, 0, 1, -1];
-    const dy = [1, -1, 0, 0];
-    let q = [[i, j]];
-    board[i][j] = 2;
-    while (q.length) {
-      [y, x] = q.shift();
-      for (let k = 0; k < 4; k++) {
-        [ny, nx] = [y + dy[k], x + dx[k]];
-        if (0 <= ny && ny < N && 0 <= nx && nx < M && board[ny][nx] === 1) {
-          q.push([ny, nx]);
-          board[ny][nx] = 2;
-        }
-      }
-    }
-    return 1;
-  }
+const dx = [0, 0, -1, 1];
+const dy = [-1, 1, 0, 0];
 
-  [M, N, K] = input.shift().split(' ').map(Number);
-  let board = Array.from(Array(N), () => Array(M).fill(0));
+for (let t = 0; t < T; t++) {
+  const [M, N, K] = input[idx++].split(" ").map(Number);
+
+  // 배추 좌표를 Set에 저장 (문자열 키로)
+  const cabbages = new Set();
   for (let i = 0; i < K; i++) {
-    [x, y] = input.shift().split(' ').map(Number);
-    board[y][x] = 1;
+    const [x, y] = input[idx++].split(" ").map(Number);
+    cabbages.add(`${x},${y}`);
   }
-  let answer = 0;
-  for (let i = 0; i < N; i++) {
-    for (let j = 0; j < M; j++) {
-      if (board[i][j] === 1) answer += bfs(i, j);
+
+  let wormCount = 0;
+  
+  const bfs = (startX, startY) => {
+      const queue = [[startX, startY]];
+      cabbages.delete(`${startX},${startY}`);
+      
+      while (queue.length > 0) {
+          const [x, y] = queue.shift();
+          
+          for (let d = 0; d < 4; d++) {
+              const nx = x + dx[d];
+              const ny = y + dy[d];
+              const key = `${nx},${ny}`;
+              
+              if (cabbages.has(key)) {
+                  cabbages.delete(key);
+                  queue.push([nx, ny]);
+                }
+            }
+        }
+    };
+    
+    // 좌표 리스트만 돌면서 BFS 실행
+    while (cabbages.size > 0) {
+        const [coord] = cabbages; // Set에서 하나 꺼내기
+        const [x, y] = coord.split(",").map(Number);
+        bfs(x, y);
+        wormCount++;
     }
-  }
-  console.log(answer);
+    
+  console.log(wormCount);
 }
