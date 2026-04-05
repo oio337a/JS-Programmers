@@ -13,11 +13,14 @@ for (let i = 0; i < arr_len; i++) {
   prefix[code][i + 1]++;
 }
 
+const answer = []
 for (let test of input) {
   let [character, s, e] = test.split(' ');
   s = Number(s);
   e = Number(e);
   let idx = character.charCodeAt(0) - 97;
   // [s, e] 구간 포함 → prefix[idx][e+1] - prefix[idx][s]
-  console.log(prefix[idx][e + 1] - prefix[idx][s]);
+  answer.push(prefix[idx][e + 1] - prefix[idx][s]);
 }
+
+console.log(answer.join('\n'))
