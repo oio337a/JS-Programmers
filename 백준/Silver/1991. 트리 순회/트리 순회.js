@@ -1,42 +1,32 @@
-const [N, ...input] = require('fs')
-  .readFileSync(0)
-  .toString()
-  .trim()
-  .split('\n');
+const fs = require("fs");
+let [N, ...infos] = fs.readFileSync(0).toString().trim().split("\n");
 
-let node = new Map();
-for (let i = 0; i < N; i++) {
-  [leaf, left, right] = input[i].split(' ');
-  node.set(leaf, [left, right]);
+const n = parseInt(N);
+const info = infos.map((item) => item.split(" "));
+
+const tree = {};
+info.forEach(([node, left, right]) => {
+  tree[node] = { left, right };
+});
+
+function preorder(node) {
+  if (node === ".") return "";
+  const { left, right } = tree[node];
+  return node + preorder(left) + preorder(right);
 }
 
-let answer = [];
-function 전(v) {
-  if (v === '.') return;
-  answer.push(v);
-  전(node.get(v)[0]);
-  전(node.get(v)[1]);
-}
-전('A');
-console.log(answer.join(''));
-answer = [];
-
-function 중(v) {
-  if (v === '.') return;
-  중(node.get(v)[0]);
-  answer.push(v);
-  중(node.get(v)[1]);
-}
-중('A');
-console.log(answer.join(''));
-answer = [];
-
-function 후(v) {
-  if (v === '.') return;
-  후(node.get(v)[0]);
-  후(node.get(v)[1]);
-  answer.push(v);
+function inorder(node) {
+  if (node === ".") return "";
+  const { left, right } = tree[node];
+  return inorder(left) + node + inorder(right);
 }
 
-후('A');
-console.log(answer.join(''));
+function postorder(node) {
+  if (node === ".") return "";
+  const { left, right } = tree[node];
+  return postorder(left) + postorder(right) + node;
+}
+
+console.log(preorder("A"));
+console.log(inorder("A"));
+console.log(postorder("A"));
