@@ -1,80 +1,88 @@
 function solution(cost, hint) {
     const n = cost.length;
 
+    let answer = Infinity;
+
+    // 현재 보유 힌트권
+    const tickets = new Uint16Array(n);
+
+    // 메모이제이션
     const memo = new Map();
 
-    // 상태 해싱
-    function encode(stage, inv) {
-        let hash = stage;
+    // 상태 압축
+    function encode(stage) {
+        let key = stage;
 
         for (let i = stage; i < n; i++) {
-            hash = hash * 31 + inv[i];
+            key = key * 31 + tickets[i];
         }
 
-        return hash;
+        return key;
     }
 
-    function dp(stage, inv) {
-        if (stage === n) return 0;
-
-        const key = encode(stage, inv);
-
-        if (memo.has(key)) {
-            return memo.get(key);
+    function dfs(stage, totalCost) {
+        // 종료
+        if (stage === n) {
+            answer = Math.min(answer, totalCost);
+            return;
         }
 
-        let ans = Infinity;
+        // 가지치기
+        if (totalCost >= answer) return;
 
-        const available = Math.min(inv[stage], n - 1);
+        // 상태 체크
+        const key = encode(stage);
 
-        // 번들 미리 계산
-        let bundleAdded = null;
+        if (memo.has(key) && memo.get(key) <= totalCost) {
+            return;
+        }
+
+        memo.set(key, totalCost);
+
+        const maxUse = Math.min(tickets[stage], n - 1);
+
+        // 번들 정보
+        let bundle = null;
+        let bundlePrice = 0;
 
         if (stage < n - 1) {
-            bundleAdded = new Uint16Array(n);
-
-            const bundle = hint[stage];
-
-            for (let i = 1; i < bundle.length; i++) {
-                bundleAdded[bundle[i] - 1]++;
-            }
+            bundle = hint[stage];
+            bundlePrice = bundle[0];
         }
 
-        for (let use = 0; use <= available; use++) {
-            inv[stage] -= use;
+        // 비용 감소폭이 큰 순서로 탐색하면 pruning 잘됨
+        for (let use = maxUse; use >= 0; use--) {
+            const stageCost = cost[stage][use];
 
-            // 번들 구매 X
-            ans = Math.min(
-                ans,
-                cost[stage][use] + dp(stage + 1, inv)
-            );
+            // 힌트 사용
+            tickets[stage] -= use;
 
-            // 번들 구매 O
-            if (bundleAdded) {
-                for (let i = stage + 1; i < n; i++) {
-                    inv[i] += bundleAdded[i];
+            // 1. 번들 미구매
+            dfs(stage + 1, totalCost + stageCost);
+
+            // 2. 번들 구매
+            if (bundle) {
+                for (let i = 1; i < bundle.length; i++) {
+                    tickets[bundle[i] - 1]++;
                 }
 
-                ans = Math.min(
-                    ans,
-                    cost[stage][use] +
-                        hint[stage][0] +
-                        dp(stage + 1, inv)
+                dfs(
+                    stage + 1,
+                    totalCost + stageCost + bundlePrice
                 );
 
                 // 복구
-                for (let i = stage + 1; i < n; i++) {
-                    inv[i] -= bundleAdded[i];
+                for (let i = 1; i < bundle.length; i++) {
+                    tickets[bundle[i] - 1]--;
                 }
             }
 
-            inv[stage] += use;
+            // 복구
+            tickets[stage] += use;
         }
-
-        memo.set(key, ans);
-
-        return ans;
     }
 
-    return dp(0, new Uint16Array(n));
+    dfs(0, 0);
+
+    return answer;
 }
